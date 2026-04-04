@@ -22,8 +22,24 @@
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
+#include"GPIO_Driver.h"
+
 int main(void)
 {
+	// 1. Enable GPIOA clock
+	    GPIO_Clockcontrol(GPIOA, ENABLE);
+
+	    // 2. Configure PA5 as output
+	    GPIO_Init_t GPIO_Pin;
+	    GPIO_Pin.GPIO_PinNumber      = 3;    // Pin number
+	    GPIO_Pin.GPIO_PinMode        = GPIO_MODE_OUT;    // Output mode
+	    GPIO_Pin.GPIO_PinOPType      = 1;    // Push-pull
+	    GPIO_Pin.GPIO_PinSpeed       = GPIO_SPEED_HIGH;    // Medium speed
+	    GPIO_Pin.GPIO_PinPuPdControl = GPIO_PIN_PU;    // No pull-up/pull-down
+	    GPIO_Pin.GPIO_PinAltFunMode  = GPIO_AF1;    // Not used for output
+
+	    // 3. Initialize PA5
+	    GPIO_Init(GPIOA, &GPIO_Pin);
     /* Loop forever */
 	for(;;);
 }

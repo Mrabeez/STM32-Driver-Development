@@ -7,7 +7,12 @@
 
 #ifndef STM32F401CCUX_H_
 #define STM32F401CCUX_H_
+#include <stdint.h>
 
+//some generic macros
+
+#define ENABLE				1
+#define DISABLE				0
 
 #define APB1_BASE_ADDR     0x40000000U
 #define APB2_BASE_ADDR     0x40010000U
@@ -39,7 +44,8 @@ typedef struct
     uint32_t LCKR;
     uint32_t AFR[2];
 
-} GPIO_RegDef_t;
+}GPIO_RegDef_t;
+
 
 typedef struct
 {
@@ -87,6 +93,28 @@ typedef struct
 //Pointers for RCC base addr
 
 #define RCC		((RCC_RegDef_t*)RCC_BASE_ADDR)
+
+//GPIO Clock Enable Macros
+
+#define GPIOA_Clk_En()   (RCC->AHB1ENR |= (1 << 0))
+#define GPIOB_Clk_En()   (RCC->AHB1ENR |= (1 << 1))
+#define GPIOC_Clk_En()   (RCC->AHB1ENR |= (1 << 2))
+#define GPIOD_Clk_En()   (RCC->AHB1ENR |= (1 << 3))
+#define GPIOE_Clk_En()   (RCC->AHB1ENR |= (1 << 4))
+#define GPIOF_Clk_En()   (RCC->AHB1ENR |= (1 << 5))
+#define GPIOG_Clk_En()   (RCC->AHB1ENR |= (1 << 6))
+#define GPIOH_Clk_En()   (RCC->AHB1ENR |= (1 << 7))
+
+//GPIO Clock Disable Macros
+
+#define GPIOA_Clk_Dis()   (RCC->AHB1ENR &= ~(1 << 0))
+#define GPIOB_Clk_Dis()   (RCC->AHB1ENR &= ~(1 << 1))
+#define GPIOC_Clk_Dis()   (RCC->AHB1ENR &= ~(1 << 2))
+#define GPIOD_Clk_Dis()   (RCC->AHB1ENR &= ~(1 << 3))
+#define GPIOE_Clk_Dis()   (RCC->AHB1ENR &= ~(1 << 4))
+#define GPIOF_Clk_Dis()   (RCC->AHB1ENR &= ~(1 << 5))
+#define GPIOG_Clk_Dis()   (RCC->AHB1ENR &= ~(1 << 6))
+#define GPIOH_Clk_Dis()   (RCC->AHB1ENR &= ~(1 << 7))
 
 
 #endif /* STM32F401CCUX_H_ */
