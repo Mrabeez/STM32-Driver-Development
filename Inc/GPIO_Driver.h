@@ -69,14 +69,14 @@ void GPIO_Clockcontrol(GPIO_RegDef_t *pGPIOx, uint8_t EnorDi);
 
 //GPIO init and GPIO deint
 void GPIO_Init(GPIO_RegDef_t *pGPIOx, GPIO_Init_t*pGPIOInit);
-void GPIO_DeInit(void);
+void GPIO_DeInit(GPIO_RegDef_t *pGPIOx);
 
 //Read write
-void GPIO_ReadFromIn_Pin(void);
-void GPIO_ReadFromIn_Port(void);
+uint8_t GPIO_ReadFromIn_Pin(GPIO_RegDef_t *pGPIOx,uint8_t PinNumber);
+uint16_t GPIO_ReadFromIn_Port(GPIO_RegDef_t *pGPIOx);
 
-void GPIO_WriteToOut_Pin(void);
-void GPIO_WriteToOut_Port(void);
+void GPIO_WriteToOut_Pin(GPIO_RegDef_t *pGPIOx,uint8_t PinNumber,uint8_t value);
+void GPIO_WriteToOut_Port(GPIO_RegDef_t *pGPIOx,uint8_t value);
 
 
 
