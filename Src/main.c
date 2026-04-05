@@ -26,20 +26,21 @@
 
 int main(void)
 {
-	// 1. Enable GPIOA clock
-	    GPIO_Clockcontrol(GPIOA, ENABLE);
+    GPIO_Clockcontrol(GPIOC, ENABLE);
 
-	    // 2. Configure PA5 as output
-	    GPIO_Init_t GPIO_Pin;
-	    GPIO_Pin.GPIO_PinNumber      = 3;    // Pin number
-	    GPIO_Pin.GPIO_PinMode        = GPIO_MODE_OUT;    // Output mode
-	    GPIO_Pin.GPIO_PinOPType      = 1;    // Push-pull
-	    GPIO_Pin.GPIO_PinSpeed       = GPIO_SPEED_HIGH;    // Medium speed
-	    GPIO_Pin.GPIO_PinPuPdControl = GPIO_PIN_PU;    // No pull-up/pull-down
-	    GPIO_Pin.GPIO_PinAltFunMode  = GPIO_AF1;    // Not used for output
+    GPIO_Init_t GPIO_Pin;
+    GPIO_Pin.GPIO_PinNumber = 13;
+    GPIO_Pin.GPIO_PinMode = GPIO_MODE_OUT;
+    GPIO_Pin.GPIO_PinOPType = GPIO_OP_TYPE_PP;
+    GPIO_Pin.GPIO_PinSpeed = GPIO_SPEED_LOW;
+    GPIO_Pin.GPIO_PinPuPdControl = GPIO_NO_PUPD;
 
-	    // 3. Initialize PA5
-	    GPIO_Init(GPIOA, &GPIO_Pin);
-    /* Loop forever */
-	for(;;);
+    GPIO_Init(GPIOC, &GPIO_Pin);
+
+    while(1)
+    {
+        GPIO_ToggleOutputPin(GPIOC, 13);
+
+        for(int i = 0; i < 50000; i++);
+    }
 }
