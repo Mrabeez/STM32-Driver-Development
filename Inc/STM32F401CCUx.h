@@ -9,6 +9,42 @@
 #define STM32F401CCUX_H_
 #include <stdint.h>
 
+
+/*****************************************************************************
+ *                          Processor Specific Details                       *
+ * Notes:These information you can get from ARM Cortex M4 Generic User Guide *
+ *****************************************************************************/
+
+/**
+ * @brief NVIC ISER Registers (Interrupt Set Enable)
+ * @note  Used to enable interrupt lines in NVIC.
+ */
+#define __vo volatile
+#define NVIC_ISER0  ((__vo uint32_t *)0xE000E100)
+#define NVIC_ISER1  ((__vo uint32_t *)0xE000E104)
+#define NVIC_ISER2  ((__vo uint32_t *)0xE000E108)
+#define NVIC_ISER3  ((__vo uint32_t *)0xE000E10C)
+
+/**
+ * @brief NVIC ICER Registers (Interrupt Clear Enable)
+ * @note  Used to disable interrupt lines in NVIC.
+ */
+#define NVIC_ICER0  ((__vo uint32_t *)0XE000E180)
+#define NVIC_ICER1  ((__vo uint32_t *)0XE000E184)
+#define NVIC_ICER2  ((__vo uint32_t *)0XE000E188)
+#define NVIC_ICER3  ((__vo uint32_t *)0XE000E18C)
+
+/* ARM Cortex M4 Processor Priority Register Address Calculation
+ */
+#define NVIC_PR_BASE_ADDR   ((__vo uint32_t *)0xE000E400)
+
+/**
+ * @brief NVIC Interrupt Priority Registers
+ * @note  Each interrupt has 8-bit priority, but only upper 4 bits [7:4] are implemented.
+ */
+
+
+
 //some generic macros
 
 #define ENABLE				1
@@ -21,6 +57,10 @@
 #define AHB2_BASE_ADDR     0x50000000U
 
 
+
+
+
+//AHB1
 #define GPIOA_BASE_ADDR    (AHB1_BASE_ADDR + 0x0000)
 #define GPIOB_BASE_ADDR    (AHB1_BASE_ADDR + 0x0400)
 #define GPIOC_BASE_ADDR    (AHB1_BASE_ADDR + 0x0800)
@@ -28,8 +68,12 @@
 #define GPIOE_BASE_ADDR    (AHB1_BASE_ADDR + 0x1000)
 #define GPIOH_BASE_ADDR    (AHB1_BASE_ADDR + 0x1C00)
 
-
 #define RCC_BASE_ADDR 		0x40023800U
+
+
+//APB2
+#define EXTI_BASEADDR     (APB2_BASE_ADDR + 0x3C00)
+#define SYSCFG_BASE_ADDR  (APB2_BASE_ADDR + 0x3800)
 
 //Register Definition struct for GPIO port
 typedef struct
@@ -81,6 +125,16 @@ typedef struct
 } RCC_RegDef_t;
 
 
+typedef struct {
+     uint32_t IMR;
+     uint32_t EMR;
+     uint32_t RTSR;
+     uint32_t FTSR;
+     uint32_t SWIER;
+     uint32_t PR;
+
+}EXTI_RegDef_t;
+
 
 //Pointers to hold base address of Regdef struct
 #define GPIOA   ((GPIO_RegDef_t*)GPIOA_BASE_ADDR)
@@ -91,8 +145,11 @@ typedef struct
 #define GPIOH   ((GPIO_RegDef_t*)GPIOH_BASE_ADDR)
 
 //Pointers for RCC base addr
-
 #define RCC		((RCC_RegDef_t*)RCC_BASE_ADDR)
+#define EXTI        ((EXTI_RegDef_t *) EXTI_BASEADDR)
+#define SYSCFG      ((SYSCFG_RegDef_t *) SYSCFG_BASEADDR)
+
+
 
 //GPIO Clock Enable Macros
 
