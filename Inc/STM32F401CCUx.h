@@ -74,6 +74,11 @@
 //APB2
 #define EXTI_BASEADDR     (APB2_BASE_ADDR + 0x3C00)
 #define SYSCFG_BASE_ADDR  (APB2_BASE_ADDR + 0x3800)
+#define USART1_BASE_ADDR   (APB2_BASE_ADDR + 0x1000)
+#define USART6_BASE_ADDR   (APB2_BASE_ADDR + 0x1400)
+
+//APB1
+#define USART2_BASE_ADDR   (APB1_BASE_ADDR + 0x4400)
 
 //Register Definition struct for GPIO port
 typedef struct
@@ -136,6 +141,18 @@ typedef struct {
 }EXTI_RegDef_t;
 
 
+typedef struct
+{
+    __vo uint32_t SR;
+    __vo uint32_t DR;
+    __vo uint32_t BRR;
+    __vo uint32_t CR1;
+    __vo uint32_t CR2;
+    __vo uint32_t CR3;
+    __vo uint32_t GTPR;
+} USART_RegDef_t;
+
+
 //Pointers to hold base address of Regdef struct
 #define GPIOA   ((GPIO_RegDef_t*)GPIOA_BASE_ADDR)
 #define GPIOB   ((GPIO_RegDef_t*)GPIOB_BASE_ADDR)
@@ -148,11 +165,12 @@ typedef struct {
 #define RCC		((RCC_RegDef_t*)RCC_BASE_ADDR)
 #define EXTI        ((EXTI_RegDef_t *) EXTI_BASEADDR)
 #define SYSCFG      ((SYSCFG_RegDef_t *) SYSCFG_BASEADDR)
-
+#define USART1  ((USART_RegDef_t*)USART1_BASE_ADDR)
+#define USART2  ((USART_RegDef_t*)USART2_BASE_ADDR)
+#define USART6  ((USART_RegDef_t*)USART6_BASE_ADDR)
 
 
 //GPIO Clock Enable Macros
-
 #define GPIOA_Clk_En()   (RCC->AHB1ENR |= (1 << 0))
 #define GPIOB_Clk_En()   (RCC->AHB1ENR |= (1 << 1))
 #define GPIOC_Clk_En()   (RCC->AHB1ENR |= (1 << 2))
@@ -181,5 +199,22 @@ typedef struct {
 #define GPIOD_REG_RESET()  do{ (RCC->AHB1RSTR |= (1<<3)); (RCC->AHB1RSTR &= ~(1<<3)); }while(0)
 #define GPIOE_REG_RESET()  do{ (RCC->AHB1RSTR |= (1<<4)); (RCC->AHB1RSTR &= ~(1<<4)); }while(0)
 #define GPIOH_REG_RESET()  do{ (RCC->AHB1RSTR |= (1<<7)); (RCC->AHB1RSTR &= ~(1<<7)); }while(0)
+
+
+//--------usart-----------
+//USART clock enable macros
+#define USART1_Clk_En()   (RCC->APB2ENR |= (1 << 4))
+#define USART6_Clk_En()   (RCC->APB2ENR |= (1 << 5))
+#define USART2_Clk_En()   (RCC->APB1ENR |= (1 << 17))
+
+//USART clock disable macro
+#define USART1_Clk_Dis()   (RCC->APB2ENR &= ~(1 << 4))
+#define USART6_Clk_Dis()   (RCC->APB2ENR &= ~(1 << 5))
+#define USART2_Clk_Dis()   (RCC->APB1ENR &= ~(1 << 17))
+
+//USAR peripheral reset macro
+#define USART1_Reg_Reset()  do{ (RCC->APB2RSTR |= (1 << 4));  (RCC->APB2RSTR &= ~(1 << 4));} while(0)
+#define USART2_Reg_Reset()  do{ (RCC->APB1RSTR |= (1 << 17)); (RCC->APB1RSTR &= ~(1 << 17)); } while(0)
+#define USART2_Reg_Reset()  do{ (RCC->APB1RSTR |= (1 << 17)); (RCC->APB1RSTR &= ~(1 << 17)); } while(0)
 
 #endif /* STM32F401CCUX_H_ */
