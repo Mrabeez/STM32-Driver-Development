@@ -49,6 +49,12 @@
 
 #define ENABLE				1
 #define DISABLE				0
+#define SET             	ENABLE
+#define RESET           	DISABLE
+#define GPIO_PIN_SET    	SET
+#define GPIO_PIN_RESET  	RESET
+#define FLAG_RESET      	RESET
+#define FLAG_SET        	SET
 
 #define APB1_BASE_ADDR     0x40000000U
 #define APB2_BASE_ADDR     0x40010000U
@@ -200,6 +206,11 @@ typedef struct
 #define GPIOE_REG_RESET()  do{ (RCC->AHB1RSTR |= (1<<4)); (RCC->AHB1RSTR &= ~(1<<4)); }while(0)
 #define GPIOH_REG_RESET()  do{ (RCC->AHB1RSTR |= (1<<7)); (RCC->AHB1RSTR &= ~(1<<7)); }while(0)
 
+//USART deinit()
+#define USART1_REG_RESET() do{(RCC->APB2RSTR |= (1<<2));   (RCC->APB2RSTR &= ~(1<<2)); }while(0)
+#define USART2_REG_RESET() do{(RCC->APB1RSTR |= (1<<17));  (RCC->APB1RSTR &= ~(1<<17)); }while(0)
+#define USART6_REG_RESET() do{(RCC->APB2RSTR |= (1<<5));   (RCC->APB2RSTR &= ~(1<<5)); }while(0)
+
 
 //--------usart-----------
 //USART clock enable macros
@@ -215,6 +226,80 @@ typedef struct
 //USAR peripheral reset macro
 #define USART1_Reg_Reset()  do{ (RCC->APB2RSTR |= (1 << 4));  (RCC->APB2RSTR &= ~(1 << 4));} while(0)
 #define USART2_Reg_Reset()  do{ (RCC->APB1RSTR |= (1 << 17)); (RCC->APB1RSTR &= ~(1 << 17)); } while(0)
-#define USART2_Reg_Reset()  do{ (RCC->APB1RSTR |= (1 << 17)); (RCC->APB1RSTR &= ~(1 << 17)); } while(0)
+#define USART2_Reg_Reset()  do{ (RCC->APB1RSTR |= (1 << 17)); (RCC->APB1RSTR &= ~(1 << 17)); } while()
 
+
+
+
+
+
+
+
+
+
+
+/*
+ * USART Control Register 1 (USART_CR1)
+ */
+#define USART_CR1_SBK            0   // Send Break
+#define USART_CR1_RWU            1   // Receiver Wakeup
+#define USART_CR1_RE             2   // Receiver Enable
+#define USART_CR1_TE             3   // Transmitter Enable
+#define USART_CR1_IDLEIE         4   // IDLE Interrupt Enable
+#define USART_CR1_RXNEIE         5   // RXNE Interrupt Enable
+#define USART_CR1_TCIE           6   // Transmission Complete Interrupt Enable
+#define USART_CR1_TXEIE          7   // TXE Interrupt Enable
+#define USART_CR1_PEIE           8   // Parity Error Interrupt Enable
+#define USART_CR1_PS             9   // Parity Selection (0: Even, 1: Odd)
+#define USART_CR1_PCE            10  // Parity Control Enable
+#define USART_CR1_WAKE           11  // Wakeup Method (Idle / Address Mark)
+#define USART_CR1_M              12  // Word Length (0: 8-bit, 1: 9-bit)
+#define USART_CR1_UE             13  // USART Enable
+#define USART_CR1_OVER8          15  // Oversampling Mode (1: By 8, 0: By 16)
+
+/*
+ * USART Control Register 2 (USART_CR2)
+ */
+
+#define USART_CR2_ADD            0   // Address of the USART (for multiprocessor mode)
+#define USART_CR2_LBDL           5   // LIN Break Detection Length
+#define USART_CR2_LBDIE          6   // LIN Break Detection Interrupt Enable
+#define USART_CR2_LBCL           8   // Last Bit Clock Pulse
+#define USART_CR2_CPHA           9   // Clock Phase
+#define USART_CR2_CPOL           10  // Clock Polarity
+#define USART_CR2_CLKEN          11  // Clock Enable (synchronous mode)
+#define USART_CR2_STOP           12  // STOP Bits (12–13)
+#define USART_CR2_LINEN          14  // LIN Mode Enable
+
+/*
+ * USART Control Register 3 (USART_CR3)
+ */
+
+#define USART_CR3_EIE            0   // Error Interrupt Enable (ORE/FE/NF)
+#define USART_CR3_IREN           1   // IrDA Mode Enable
+#define USART_CR3_IRLP           2   // IrDA Low-Power Mode
+#define USART_CR3_HDSEL          3   // Half-Duplex Selection
+#define USART_CR3_NACK           4   // Smartcard NACK Enable
+#define USART_CR3_SCEN           5   // Smartcard Mode Enable
+#define USART_CR3_DMAR           6   // DMA Enable Receiver
+#define USART_CR3_DMAT           7   // DMA Enable Transmitter
+#define USART_CR3_RTSE           8   // RTS Hardware Flow Control Enable
+#define USART_CR3_CTSE           9   // CTS Hardware Flow Control Enable
+#define USART_CR3_CTSIE          10  // CTS Interrupt Enable
+#define USART_CR3_ONEBIT         11  // One Sample Bit Method Enable
+
+/*
+ * USART Status Register (USART_SR)
+ */
+#define USART_SR_PE              0   // Parity Error
+#define USART_SR_FE              1   // Framing Error
+#define USART_SR_NF              2   // Noise Flag
+#define USART_SR_ORE             3   // Overrun Error
+#define USART_SR_IDLE            4   // IDLE Line Detected
+#define USART_SR_RXNE            5   // Read Data Register Not Empty
+#define USART_SR_TC              6   // Transmission Complete
+#define USART_SR_TXE             7   // Transmit Data Register Empty
+#define USART_SR_LBD             8   // LIN Break Detection Flag
+#define USART_SR_CTS             9   // CTS Flag (if CTS enabled)
 #endif /* STM32F401CCUX_H_ */
+
