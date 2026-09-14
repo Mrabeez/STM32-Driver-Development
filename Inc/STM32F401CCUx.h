@@ -226,7 +226,7 @@ typedef struct
 //USAR peripheral reset macro
 #define USART1_Reg_Reset()  do{ (RCC->APB2RSTR |= (1 << 4));  (RCC->APB2RSTR &= ~(1 << 4));} while(0)
 #define USART2_Reg_Reset()  do{ (RCC->APB1RSTR |= (1 << 17)); (RCC->APB1RSTR &= ~(1 << 17)); } while(0)
-#define USART2_Reg_Reset()  do{ (RCC->APB1RSTR |= (1 << 17)); (RCC->APB1RSTR &= ~(1 << 17)); } while()
+#define USART6_Reg_Reset()  do{ (RCC->APB1RSTR |= (1 << 17)); (RCC->APB1RSTR &= ~(1 << 17)); } while()
 
 
 

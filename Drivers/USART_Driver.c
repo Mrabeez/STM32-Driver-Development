@@ -94,7 +94,8 @@ void USART_Init(USART_Handle_t *pUSARTHandle)
     }
     //update cr3
     pUSARTHandle->pUSARTx->CR3=tempreg;
-    //USART_SetBaudRate(pUSARTHandle->pUSARTx, pUSARTHandle->USART_Config.USART_Baud);
+    USART_SetBaudRate(pUSARTHandle->pUSARTx, pUSARTHandle->USART_Config.USART_Baud);
+
 }
 
 
@@ -136,6 +137,41 @@ void USART_ReceiveData(USART_Handle_t *pUSARTHandle, uint8_t *pRxBuffer, uint32_
 		}pRxBuffer++;
 	}
 }
+
+void USART_SendData(USART_Handle_t *pUSARTHandle, uint8_t *pTxBuffer, uint32_t Len){
+	for(uint32_t i=0;i<Len;i++){
+		while(!USART_GetFlagStatus(pUSARTHandle->pUSARTx,USART_FLAG_TXE));
+		if(pUSARTHandle->USART_Config.USART_WordLength==USART_WORDLEN_9BITS){
+			if(pUSARTHandle->USART_Config.USART_ParityControl==USART_PARITY_DISABLE){
+				pUSARTHandle->pUSARTx->DR = (*((uint16_t*)pTxBuffer) & 0x01FF);
+				pTxBuffer++;
+				pTxBuffer++;
+			}
+			else {
+				pUSARTHandle->pUSARTx->DR =*pTxBuffer & 0x00FF;
+				pTxBuffer++;
+			}
+		}
+		else{
+			if(pUSARTHandle->USART_Config.USART_ParityControl==USART_PARITY_DISABLE){
+				pUSARTHandle->pUSARTx->DR= *pTxBuffer & 0x0FF;
+						pTxBuffer++;
+			}
+			else{
+				pUSARTHandle->pUSARTx->DR= *pTxBuffer& 0x07F;
+										pTxBuffer++;
+			}
+
+
+		}
+	}
+}
+
+
+
+
+
+
 
 uint8_t USART_GetFlagStatus(USART_RegDef_t *pUSARTx, uint32_t flagname){
 	if(pUSARTx->SR & flagname){
