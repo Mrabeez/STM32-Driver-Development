@@ -168,15 +168,16 @@ void USART_SendData(USART_Handle_t *pUSARTHandle, uint8_t *pTxBuffer, uint32_t L
 }
 
 
-
-
-
-
-
 uint8_t USART_GetFlagStatus(USART_RegDef_t *pUSARTx, uint32_t flagname){
 	if(pUSARTx->SR & flagname){
 		return FLAG_SET;
 	}
 	return FLAG_RESET;
+}
+
+
+void USART_SetBaudRate(USART_RegDef_t *pUSARTx, uint32_t BaudRate){
+	uint32_t PCLKx;
+
 }
 
