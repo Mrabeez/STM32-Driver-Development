@@ -177,7 +177,34 @@ uint8_t USART_GetFlagStatus(USART_RegDef_t *pUSARTx, uint32_t flagname){
 
 
 void USART_SetBaudRate(USART_RegDef_t *pUSARTx, uint32_t BaudRate){
-	uint32_t PCLKx;
+	uint32_t PCLKx,usartdiv;
+	uint32_t M_part,F_part,tempreg=0;
 
+	if (pUSARTx==USART1|| pUSARTx==USART6){
+		RCC_GetPCLK2Value();
+	}
+	else{
+		RCC_GetPCLK1Value();
+	}
+
+//	if((RCC->CR>>15)&0x01){
+	if((pUSARTx->CR1 >>15)&0x01){
+		usartdiv = ((25 * PCLKx) / (2 *BaudRate));
+	}
+	else{
+		usartdiv = ((25 * PCLKx) / (4 *BaudRate));
+	}
+
+	M_part=usartdiv/100;
+	tempreg|=M_part<<4;
+
+	F_part=usartdiv-(M_part*100);
+	if((pUSARTx->CR1)&(1<<15)){
+		F_part = ((( F_part * 8)+ 50) / 100)& (0x07);
+	}
+	else{
+		 F_part = ((( F_part * 16)+ 50) / 100) & (0x0F);
+	}
+	tempreg|=F_part;
+	pUSARTx->BRR=tempreg;
 }
-
