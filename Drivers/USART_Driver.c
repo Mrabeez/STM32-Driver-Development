@@ -87,7 +87,7 @@ void USART_Init(USART_Handle_t *pUSARTHandle)
         tempreg |= ( 1 << USART_CR3_CTSE);
     }else if (pUSARTHandle->USART_Config.USART_HWFlowControl == USART_HW_FLOW_CTRL_RTS){
         //Enable RTS flow control
-        tempreg |= USART_CR3_RTSE;
+        tempreg |= (1<<USART_CR3_RTSE);
     }else if (pUSARTHandle->USART_Config.USART_HWFlowControl == USART_HW_FLOW_CTRL_CTS_RTS){
         //Enable both CTS and RTS Flow control
         tempreg |= ( ( 1 << USART_CR3_CTSE) | ( 1 << USART_CR3_RTSE) );
@@ -95,7 +95,7 @@ void USART_Init(USART_Handle_t *pUSARTHandle)
     //update cr3
     pUSARTHandle->pUSARTx->CR3=tempreg;
     USART_SetBaudRate(pUSARTHandle->pUSARTx, pUSARTHandle->USART_Config.USART_Baud);
-
+    USART_PeripheralControl(pUSARTHandle->pUSARTx, ENABLE);
 }
 
 
@@ -176,6 +176,18 @@ uint8_t USART_GetFlagStatus(USART_RegDef_t *pUSARTx, uint32_t flagname){
 }
 
 
+void USART_PeripheralControl(USART_RegDef_t *pUSARTx,uint8_t EnOrDi){
+	if (EnOrDi==ENABLE){
+		pUSARTx->CR1|=(1<<USART_CR1_UE);
+	}
+	else {
+		pUSARTx->CR1&=~(1<<USART_CR1_UE);
+	}
+}
+
+
+
+
 void USART_SetBaudRate(USART_RegDef_t *pUSARTx, uint32_t BaudRate){
 	uint32_t PCLKx,usartdiv;
 	uint32_t M_part,F_part,tempreg=0;
@@ -188,23 +200,24 @@ void USART_SetBaudRate(USART_RegDef_t *pUSARTx, uint32_t BaudRate){
 	}
 
 //	if((RCC->CR>>15)&0x01){
-	if((pUSARTx->CR1 >>15)&0x01){
+	if((pUSARTx->CR1 >>USART_CR1_OVER8)&0x01){
 		usartdiv = ((25 * PCLKx) / (2 *BaudRate));
 	}
 	else{
 		usartdiv = ((25 * PCLKx) / (4 *BaudRate));
 	}
-
+//	Mantissa part
 	M_part=usartdiv/100;
 	tempreg|=M_part<<4;
-
+// 	Fraction part
 	F_part=usartdiv-(M_part*100);
-	if((pUSARTx->CR1)&(1<<15)){
+	if((pUSARTx->CR1)&(1<<USART_CR1_OVER8)){
 		F_part = ((( F_part * 8)+ 50) / 100)& (0x07);
 	}
 	else{
 		 F_part = ((( F_part * 16)+ 50) / 100) & (0x0F);
 	}
+
 	tempreg|=F_part;
 	pUSARTx->BRR=tempreg;
 }
