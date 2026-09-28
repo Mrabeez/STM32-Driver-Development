@@ -20,6 +20,7 @@
  * @note  Used to enable interrupt lines in NVIC.
  */
 #define __vo volatile
+#define __weak __attribute__((weak))
 #define NVIC_ISER0  ((__vo uint32_t *)0xE000E100)
 #define NVIC_ISER1  ((__vo uint32_t *)0xE000E104)
 #define NVIC_ISER2  ((__vo uint32_t *)0xE000E108)

@@ -69,6 +69,12 @@ typedef struct
 #define USART_HW_FLOW_CTRL_RTS      2
 #define USART_HW_FLOW_CTRL_CTS_RTS  3
 
+//Application states
+#define USART_READY             0
+#define USART_BUSY_IN_RX        1
+#define USART_BUSY_IN_TX        2
+
+
 void USART_PeriClockControl(USART_RegDef_t* pUSARTx, uint8_t EnorDi);
 void USART_Init(USART_Handle_t *pUSARTHandle);
 void USART_DeInit(USART_RegDef_t *pUSARTx);
@@ -77,9 +83,15 @@ void USART_SendData(USART_Handle_t *pUSARTHandle, uint8_t *pTxBuffer, uint32_t L
 void USART_PeripheralControl(USART_RegDef_t *pUSARTx,uint8_t EnOrDi);
 void USART_SetBaudRate(USART_RegDef_t *pUSARTx, uint32_t BaudRate);
 
-
+//interrupt
+void USART_IRQInterruptConfig(uint8_t IRQNumber,uint8_t EnOrDi);
+void USART_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
+uint8_t USART_SendDataIT(USART_Handle_t *pUSARTHandle,uint8_t *pTxBuffer,uint32_t Len);
+uint8_t USART_ReceiveDataIT(USART_Handle_t *pUSARTHandle ,uint8_t *pTxBuffer ,uint32_t Len);
+void USART_IRQHandling(USART_Handle_t *pUSARTHandle);
 
 
 
 uint8_t USART_GetFlagStatus(USART_RegDef_t *pUSARTx, uint32_t FlagName);
+__weak USART_ApplicationEventCallback(USART_Handle_t *pUSARTHandle,uint8_t AppEv);
 #endif /* USART_DRIVER_H_ */

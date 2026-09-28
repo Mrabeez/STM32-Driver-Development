@@ -193,10 +193,10 @@ void USART_SetBaudRate(USART_RegDef_t *pUSARTx, uint32_t BaudRate){
 	uint32_t M_part,F_part,tempreg=0;
 
 	if (pUSARTx==USART1|| pUSARTx==USART6){
-		RCC_GetPCLK2Value();
+		PCLKx=RCC_GetPCLK2Value();
 	}
 	else{
-		RCC_GetPCLK1Value();
+		PCLKx=RCC_GetPCLK1Value();
 	}
 
 //	if((RCC->CR>>15)&0x01){
@@ -221,3 +221,113 @@ void USART_SetBaudRate(USART_RegDef_t *pUSARTx, uint32_t BaudRate){
 	tempreg|=F_part;
 	pUSARTx->BRR=tempreg;
 }
+
+
+
+//interrupt
+void USART_IRQInterruptConfig(uint8_t IRQNumber,uint8_t EnOrDi){
+
+	uint8_t regindex=IRQNumber/32;
+	uint8_t bit_pos=IRQNumber%32;
+
+	if (EnOrDi==ENABLE){
+		if (regindex==0) *NVIC_ISER0 |= (1 << bit_pos);
+		else if (regindex==1) *NVIC_ISER1 |= (1 << bit_pos);
+		else if (regindex==2) *NVIC_ISER2 |= (1 << bit_pos);
+		else if (regindex==3) *NVIC_ISER3 |= (1 << bit_pos);
+	}
+
+	else{
+		if (regindex==0) *NVIC_ICER0 |= (1 << bit_pos);
+		else if (regindex==1) *NVIC_ICER1 |= (1 << bit_pos);
+		else if (regindex==2) *NVIC_ICER2 |= (1 << bit_pos);
+		else if (regindex==3) *NVIC_ICER3 |= (1 << bit_pos);
+	}
+}
+
+
+
+void USART_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority){
+	uint8_t iprx = IRQNumber/4;
+	uint8_t iprx_section = IRQNumber%4;
+
+	uint8_t shift = (8 * iprx_section) + (8 - 4);
+
+	*(NVIC_PR_BASE_ADDR + iprx) |= (IRQPriority << shift);
+}
+
+
+uint8_t USART_SendDataIT(USART_Handle_t *pUSARTHandle ,uint8_t *pTxBuffer ,uint32_t Len){
+	uint8_t txstate=pUSARTHandle->TxBusyState;
+
+	if(txstate != USART_BUSY_IN_TX){
+		pUSARTHandle->TxLen=Len;
+		pUSARTHandle->pTxBuffer=pTxBuffer;
+		pUSARTHandle->TxBusyState= USART_BUSY_IN_TX;
+
+		pUSARTHandle->pUSARTx->CR1 |= (1 << USART_CR1_TXEIE);
+
+		pUSARTHandle->pUSARTx->CR1 |= (1 << USART_CR1_TCIE);
+	}
+	return txstate;
+}
+
+uint8_t USART_ReceiveDataIT(USART_Handle_t *pUSARTHandle ,uint8_t *pTxBuffer ,uint32_t Len){
+	uint8_t rxstate =pUSARTHandle->RxBusyState;
+
+	if(rxstate !=USART_BUSY_IN_RX){
+		pUSARTHandle->TxLen=Len;
+		pUSARTHandle->pTxBuffer=pTxBuffer;
+		pUSARTHandle->TxBusyState=USART_BUSY_IN_RX;
+
+		pUSARTHandle->pUSARTx->CR1 |= (1 << USART_CR1_RXNEIE);
+	}
+}
+
+static void usart_handle_tc(USART_Handle_t *pUSARTHandle);
+static void usart_handle_txe(USART_Handle_t *pUSARTHandle);
+static void usart_handle_rxne(USART_Handle_t *pUSARTHandle);
+static void usart_handle_cts(USART_Handle_t *pUSARTHandle);
+static void usart_handle_idle(USART_Handle_t *pUSARTHandle);
+static void usart_handle_ore(USART_Handle_t *pUSARTHandle);
+static void usart_handle_error_flags(USART_Handle_t *pUSARTHandle, uint32_t sr);
+
+void USART_IRQHandling(USART_Handle_t *pUSARTHandle){
+	uint32_t sr = pUSARTHandle->pUSARTx->SR;
+	uint32_t cr1 = pUSARTHandle->pUSARTx->CR1;
+	uint32_t cr3 = pUSARTHandle->pUSARTx->CR3;
+
+	if ((sr & (1 << USART_SR_TC)) && (cr1 & (1 << USART_CR1_TCIE))){
+	    usart_handle_tc(pUSARTHandle);
+	}
+
+	if ((sr & (1 << USART_SR_TXE)) && (cr1 & (1 << USART_CR1_TXEIE))){
+	    usart_handle_txe(pUSARTHandle);
+	}
+
+	if ((sr & (1 << USART_SR_RXNE)) && (cr1 & (1 << USART_CR1_RXNEIE))){
+	    usart_handle_rxne(pUSARTHandle);
+	}
+
+	if ((sr & (1 << USART_SR_CTS)) && (cr3 & (1 << USART_CR3_CTSIE))){
+	    usart_handle_cts(pUSARTHandle);
+	}
+
+	if ((sr & (1 << USART_SR_IDLE)) && (cr1 & (1 << USART_CR1_IDLEIE))){
+	    usart_handle_idle(pUSARTHandle);
+	}
+
+	if ((sr & (1 << USART_SR_ORE)) && (cr3 & (1 << USART_CR3_EIE))){
+	    usart_handle_ore(pUSARTHandle);
+	}
+	if (cr3 & (1 << USART_CR3_EIE)){
+	    usart_handle_error_flags(pUSARTHandle, sr);
+	}
+}
+
+
+__weak USART_ApplicationEventCallback(USART_Handle_t *pUSARTHandle,uint8_t AppEv){
+	 // This is a weak implementation. The application may override this function.
+}
+
+

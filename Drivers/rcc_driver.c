@@ -94,7 +94,7 @@ uint32_t RCC_GetPCLK2Value(void){
 
 
 
-uint32_t GetPLLOutputClk(){
+uint32_t GetPLLOutputClk(void){
 	/*TODO : implement PLL output calculation if your system uses PLL as SYSCLK ,
 	 	 	 for now return 0 to show it is not implemented
 	*/
