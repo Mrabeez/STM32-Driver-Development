@@ -16,31 +16,175 @@
  ******************************************************************************
  */
 
+
 #include <stdint.h>
+#include <string.h>
 
-#if !defined(__SOFT_FP__) && defined(__ARM_FP)
-  #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
-#endif
+#include "STM32F401CCUx.h"
+#include "GPIO_Driver.h"
+#include "USART_Driver.h"
 
-#include"GPIO_Driver.h"
 
 int main(void)
 {
-    GPIO_Clockcontrol(GPIOC, ENABLE);
+    // ==========================================
+    // 1. GPIO CONFIGURATION
+    // ==========================================
 
-    GPIO_Init_t GPIO_Pin;
-    GPIO_Pin.GPIO_PinNumber = 13;
-    GPIO_Pin.GPIO_PinMode = GPIO_MODE_OUT;
-    GPIO_Pin.GPIO_PinOPType = GPIO_OP_TYPE_PP;
-    GPIO_Pin.GPIO_PinSpeed = GPIO_SPEED_LOW;
+    // Enable GPIOA clock
+    GPIO_Clockcontrol(GPIOA, ENABLE);
+
+    GPIO_Init_t GPIO_Pin = {0};
+
+    // PA9 -> USART1_TX (AF7)
+    GPIO_Pin.GPIO_PinNumber = 9;
+    GPIO_Pin.GPIO_PinMode = GPIO_MODE_ALTFUN;
+    GPIO_Pin.GPIO_PinSpeed = GPIO_SPEED_HIGH;
     GPIO_Pin.GPIO_PinPuPdControl = GPIO_NO_PUPD;
+    GPIO_Pin.GPIO_PinOPType = GPIO_OP_TYPE_PP;
+    GPIO_Pin.GPIO_PinAltFunMode = GPIO_AF7;
 
-    GPIO_Init(GPIOC, &GPIO_Pin);
+    GPIO_Init(GPIOA, &GPIO_Pin);
+
+
+    // PA10 -> USART1_RX (AF7)
+    GPIO_Pin.GPIO_PinNumber = 10;
+
+    GPIO_Init(GPIOA, &GPIO_Pin);
+
+
+    // ==========================================
+    // 2. USART CONFIGURATION
+    // ==========================================
+
+    USART_Handle_t USART1_Handle = {0};
+
+    USART1_Handle.pUSARTx = USART1;
+
+    USART1_Handle.USART_Config.USART_Mode =
+        USART_MODE_TXRX;
+
+    // Baud rate: 9600
+    USART1_Handle.USART_Config.USART_Baud = 9600;
+
+    // 8 data bits
+    USART1_Handle.USART_Config.USART_WordLength =
+        USART_WORDLEN_8BITS;
+
+    // 1 stop bit
+    USART1_Handle.USART_Config.USART_NoOfStopBits =
+        USART_STOPBITS_1;
+
+    // No parity
+    USART1_Handle.USART_Config.USART_ParityControl =
+        USART_PARITY_DISABLE;
+
+    // No hardware flow control
+    USART1_Handle.USART_Config.USART_HWFlowControl =
+        USART_HW_FLOW_CTRL_NONE;
+
+
+    // Initialize USART1
+    USART_Init(&USART1_Handle);
+
+
+    // ==========================================
+    // 3. STARTUP MESSAGE
+    // ==========================================
+
+    uint8_t message[] = "UART Communication Ready!\r\n";
+
+    USART_SendData(&USART1_Handle,
+                   message,
+                   sizeof(message) - 1);
+
+
+    // ==========================================
+    // 4. RECEIVE COMPLETE MESSAGE
+    // ==========================================
+
+    uint8_t received_data;
+
+    uint8_t rx_buffer[64];
+
+    uint8_t rx_index = 0;
+
+    uint8_t response[] = "\r\nFROM MC: ";
+
+    uint8_t newline[] = "\r\n";
+
 
     while(1)
     {
-        GPIO_ToggleOutputPin(GPIOC, 13);
+        // Receive one character
+        USART_ReceiveData(&USART1_Handle,
+                          &received_data,
+                          1);
 
-        for(int i = 0; i < 50000; i++);
+
+        // --------------------------------------
+        // ENTER PRESSED
+        // --------------------------------------
+
+        if(received_data == '\r')
+        {
+            // Send response prefix
+            USART_SendData(&USART1_Handle,
+                           response,
+                           sizeof(response) - 1);
+
+
+            // Send received message
+            USART_SendData(&USART1_Handle,
+                           rx_buffer,
+                           rx_index);
+
+
+            // Send new line
+            USART_SendData(&USART1_Handle,
+                           newline,
+                           sizeof(newline) - 1);
+
+
+            // Reset buffer
+            rx_index = 0;
+        }
+
+
+        // --------------------------------------
+        // IGNORE LINE FEED
+        // --------------------------------------
+
+        else if(received_data == '\n')
+        {
+            continue;
+        }
+
+
+        // --------------------------------------
+        // BACKSPACE HANDLING
+        // --------------------------------------
+
+        else if(received_data == '\b' ||
+                received_data == 127)
+        {
+            if(rx_index > 0)
+            {
+                rx_index--;
+            }
+        }
+
+
+        // --------------------------------------
+        // STORE RECEIVED CHARACTERS
+        // --------------------------------------
+
+        else
+        {
+            if(rx_index < sizeof(rx_buffer))
+            {
+                rx_buffer[rx_index++] = received_data;
+            }
+        }
     }
 }

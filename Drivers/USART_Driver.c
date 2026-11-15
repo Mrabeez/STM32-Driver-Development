@@ -165,6 +165,7 @@ void USART_SendData(USART_Handle_t *pUSARTHandle, uint8_t *pTxBuffer, uint32_t L
 
 		}
 	}
+	 while( ! USART_GetFlagStatus(pUSARTHandle->pUSARTx,USART_FLAG_TC));
 }
 
 
@@ -324,6 +325,74 @@ void USART_IRQHandling(USART_Handle_t *pUSARTHandle){
 	    usart_handle_error_flags(pUSARTHandle, sr);
 	}
 }
+
+static void usart_handle_tc(USART_Handle_t *pUSARTHandle){
+	if ((pUSARTHandle->TxBusyState == USART_BUSY_IN_TX) && (pUSARTHandle->TxLen == 0)){
+
+		pUSARTHandle->pUSARTx->SR &= ~(1 << USART_SR_TC);
+
+		pUSARTHandle->pUSARTx->CR1 &= ~(1 << USART_CR1_TCIE);
+
+		pUSARTHandle->TxBusyState = USART_READY;
+		pUSARTHandle->pTxBuffer =NULL;
+		pUSARTHandle->TxLen = 0;
+
+
+		USART_ApplicationEventCallback(pUSARTHandle,USART_EVENT_TX_CMPLT);
+	}
+}
+
+
+static void usart_handle_txe(USART_Handle_t *pUSARTHandle)
+{
+    if (pUSARTHandle->TxBusyState != USART_BUSY_IN_TX)
+        return;
+
+    if (pUSARTHandle->TxLen > 0)
+    {
+        if (pUSARTHandle->USART_Config.USART_WordLength == USART_WORDLEN_9BITS)
+        {
+            if (pUSARTHandle->USART_Config.USART_ParityControl == USART_PARITY_DISABLE)
+            {
+                pUSARTHandle->pUSARTx->DR =
+                    (*((uint16_t *)pUSARTHandle->pTxBuffer) & 0x01FF);
+
+                pUSARTHandle->pTxBuffer += 2;
+                pUSARTHandle->TxLen -= 2;
+            }
+            else
+            {
+                pUSARTHandle->pUSARTx->DR =
+                    (*pUSARTHandle->pTxBuffer & 0xFF);
+
+                pUSARTHandle->pTxBuffer += 1;
+                pUSARTHandle->TxLen -= 1;
+            }
+        }
+        else
+        {
+            if (pUSARTHandle->USART_Config.USART_ParityControl == USART_PARITY_DISABLE)
+            {
+                pUSARTHandle->pUSARTx->DR =
+                    (*pUSARTHandle->pTxBuffer & 0xFF);
+            }
+            else
+            {
+            	pUSARTHandle->pUSARTx->DR =
+                    (*pUSARTHandle->pTxBuffer & 0x7F);
+            }
+
+            pUSARTHandle->pTxBuffer += 1;
+            pUSARTHandle->TxLen -= 1;
+        }
+    }
+
+    if (pUSARTHandle->TxLen == 0)
+    {
+        pUSARTHandle->pUSARTx->CR1 &= ~(1 << USART_CR1_TXEIE);
+    }
+}
+
 
 
 __weak USART_ApplicationEventCallback(USART_Handle_t *pUSARTHandle,uint8_t AppEv){
