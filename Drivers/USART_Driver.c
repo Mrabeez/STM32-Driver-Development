@@ -392,6 +392,60 @@ static void usart_handle_txe(USART_Handle_t *pUSARTHandle)
         pUSARTHandle->pUSARTx->CR1 &= ~(1 << USART_CR1_TXEIE);
     }
 }
+static void usart_handle_rxne(USART_Handle_t *pUSARTHandle)
+{
+	if (pUSARTHandle->RxBusyState != USART_BUSY_IN_RX)
+	{
+		return;
+	}
+	if (pUSARTHandle->RxLen == 0)
+	{
+	    pUSARTHandle->pUSARTx->CR1 &= ~(1 << USART_CR1_RXNEIE);
+	    return;
+	}
+
+
+	if (pUSARTHandle->USART_Config.USART_WordLength == USART_WORDLEN_9BITS)
+	{
+		if(pUSARTHandle->USART_Config.USART_ParityControl == USART_PARITY_DISABLE)
+		{
+			*((uint16_t *)pUSARTHandle->pRxBuffer) = (pUSARTHandle->pUSARTx->DR & ((uint16_t)0x01FF));
+
+			pUSARTHandle->RxLen -= 2;
+			pUSARTHandle->pRxBuffer +=2;
+		}
+
+		else	//8bit as parity is enabled
+					{
+						*pUSARTHandle->pRxBuffer = ((pUSARTHandle->pUSARTx->DR) & (0x0FF));
+						pUSARTHandle->RxLen --;
+						pUSARTHandle->pRxBuffer ++;
+					}
+
+	}
+		else	//8bit as parity is enabled
+			{
+				if (pUSARTHandle->USART_Config.USART_ParityControl == USART_PARITY_DISABLE)
+				{
+					*pUSARTHandle->pRxBuffer = ((pUSARTHandle->pUSARTx->DR) & (0x0FF));
+
+				}
+				else
+				{
+					*pUSARTHandle->pRxBuffer = ((pUSARTHandle->pUSARTx->DR) & (0x07F));
+				}
+				pUSARTHandle->RxLen --;
+				pUSARTHandle->pRxBuffer ++;
+			}
+		if (pUSARTHandle->RxLen == 0)
+		{
+			pUSARTHandle->pUSARTx->CR1 &= ~(1 << USART_CR1_RXNEIE);
+			pUSARTHandle->RxBusyState = USART_READY;
+
+			 USART_ApplicationEventCallback(pUSARTHandle, USART_EVENT_RX_CMPLT);
+		}
+}
+
 
 
 
