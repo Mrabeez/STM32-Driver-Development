@@ -103,5 +103,5 @@ void USART_IRQHandling(USART_Handle_t *pUSARTHandle);
 
 
 uint8_t USART_GetFlagStatus(USART_RegDef_t *pUSARTx, uint32_t FlagName);
-__weak USART_ApplicationEventCallback(USART_Handle_t *pUSARTHandle,uint8_t AppEv);
+__weak void USART_ApplicationEventCallback(USART_Handle_t *pUSARTHandle,uint8_t AppEv);
 #endif /* USART_DRIVER_H_ */

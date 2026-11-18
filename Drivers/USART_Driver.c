@@ -7,6 +7,7 @@
 
 
 #include"USART_Driver.h"
+#include "rcc_driver.h"
 
 
 void USART_PeriClockControl(USART_RegDef_t *pUSARTx, uint8_t EnorDi)
@@ -133,8 +134,8 @@ void USART_ReceiveData(USART_Handle_t *pUSARTHandle, uint8_t *pRxBuffer, uint32_
 			}
 			else{
 				*pRxBuffer=(uint8_t) (pUSARTHandle->pUSARTx->DR & (uint8_t)0x007F);
-			}
-		}pRxBuffer++;
+			}pRxBuffer++;
+		}
 	}
 }
 
@@ -273,16 +274,17 @@ uint8_t USART_SendDataIT(USART_Handle_t *pUSARTHandle ,uint8_t *pTxBuffer ,uint3
 	return txstate;
 }
 
-uint8_t USART_ReceiveDataIT(USART_Handle_t *pUSARTHandle ,uint8_t *pTxBuffer ,uint32_t Len){
+uint8_t USART_ReceiveDataIT(USART_Handle_t *pUSARTHandle ,uint8_t *pRxBuffer ,uint32_t Len){
 	uint8_t rxstate =pUSARTHandle->RxBusyState;
 
 	if(rxstate !=USART_BUSY_IN_RX){
-		pUSARTHandle->TxLen=Len;
-		pUSARTHandle->pTxBuffer=pTxBuffer;
-		pUSARTHandle->TxBusyState=USART_BUSY_IN_RX;
+		pUSARTHandle->RxLen = Len;
+		pUSARTHandle->pRxBuffer = pRxBuffer;
+		pUSARTHandle->RxBusyState = USART_BUSY_IN_RX;
 
 		pUSARTHandle->pUSARTx->CR1 |= (1 << USART_CR1_RXNEIE);
 	}
+	return rxstate;
 }
 
 static void usart_handle_tc(USART_Handle_t *pUSARTHandle);
@@ -342,7 +344,6 @@ static void usart_handle_tc(USART_Handle_t *pUSARTHandle){
 	}
 }
 
-
 static void usart_handle_txe(USART_Handle_t *pUSARTHandle)
 {
     if (pUSARTHandle->TxBusyState != USART_BUSY_IN_TX)
@@ -392,6 +393,7 @@ static void usart_handle_txe(USART_Handle_t *pUSARTHandle)
         pUSARTHandle->pUSARTx->CR1 &= ~(1 << USART_CR1_TXEIE);
     }
 }
+
 static void usart_handle_rxne(USART_Handle_t *pUSARTHandle)
 {
 	if (pUSARTHandle->RxBusyState != USART_BUSY_IN_RX)
@@ -447,9 +449,45 @@ static void usart_handle_rxne(USART_Handle_t *pUSARTHandle)
 }
 
 
+static void usart_handle_cts(USART_Handle_t *pUSARTHandle)
+{
+	pUSARTHandle->pUSARTx->SR &= ~(1 << (USART_SR_CTS));
+
+	USART_ApplicationEventCallback(pUSARTHandle, USART_EVENT_CTS);
+}
 
 
-__weak USART_ApplicationEventCallback(USART_Handle_t *pUSARTHandle,uint8_t AppEv){
+static void usart_handle_idle(USART_Handle_t *pUSARTHandle)
+{
+	(void)pUSARTHandle->pUSARTx->SR;
+	(void)pUSARTHandle->pUSARTx->DR;
+
+	USART_ApplicationEventCallback(pUSARTHandle, USART_EVENT_IDLE);
+}
+
+
+static void usart_handle_ore(USART_Handle_t *pUSARTHandle)
+{
+	//app can decide how to handle the clear ore(SR + DR)
+	USART_ApplicationEventCallback(pUSARTHandle, USART_ERR_ORE);
+}
+
+
+static void usart_handle_error_flags(USART_Handle_t *pUSARTHandle, uint32_t sr)
+{
+	if (sr & (1 << USART_SR_FE))
+	{
+		USART_ApplicationEventCallback(pUSARTHandle, USART_ERR_FE);
+	}
+	if (sr & (1 << USART_SR_NF))
+	{
+		USART_ApplicationEventCallback(pUSARTHandle, USART_ERR_NE);
+	}
+
+}
+
+
+__weak void USART_ApplicationEventCallback(USART_Handle_t *pUSARTHandle,uint8_t AppEv){
 	 // This is a weak implementation. The application may override this function.
 }
 
